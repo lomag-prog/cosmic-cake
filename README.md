@@ -10,7 +10,7 @@ Twelve poems drift in space like memories. Ten orbit rings mark ten years. At th
 
 ## Experience
 
-Visit the live piece: [ten-years-of-orbit](orbit-editorial (2).html)
+Visit the live piece: [https://lomag-prog.github.io/cosmic-cake](https://lomag-prog.github.io/cosmic-cake)
 
 Click the floating poems to read them. Click the sun at the center for the dream that lives there. Watch the planet orbit — for a decade, he never stopped circling.
 
