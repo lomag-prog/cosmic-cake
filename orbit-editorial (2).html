@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ten Years of Orbit</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --void: #0a0a0a;
+  --paper: #f4f1e8;
+  --ink: #1a1a1a;
+  --ink-fade: #666;
+  --accent: #8a7a6a;
+  --line: #d4d0c4;
+  --orbit-old: rgba(212, 208, 196, 0.15);
+  --orbit-new: rgba(212, 208, 196, 0.4);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--void);
+  overflow: hidden;
+  font-family: 'Courier Prime', monospace;
+  color: var(--paper);
+  cursor: default;
+}
+
+/* ── GRID OVERLAY ── */
+.grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 99px, rgba(244,241,232,0.02) 99px, rgba(244,241,232,0.02) 100px),
+    repeating-linear-gradient(90deg, transparent, transparent 99px, rgba(244,241,232,0.02) 99px, rgba(244,241,232,0.02) 100px);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* ── SCENE ── */
+.scene {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── ORBIT RINGS ── */
+/* Each ring = one year, 10 rings total */
+.orbit-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  opacity: 0;
+  animation: ring-fade-in 2s ease-out forwards;
+}
+
+/* Year labels on rings */
+.year-label {
+  position: absolute;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--ink-fade);
+  opacity: 0;
+  animation: label-fade 2s ease-out forwards;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes ring-fade-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes label-fade {
+  from { opacity: 0; }
+  to { opacity: 0.4; }
+}
+
+/* ── SUN (center point) ── */
+.sun {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  background: var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(244,241,232,0.6);
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sun:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 30px rgba(244,241,232,0.8);
+}
+
+.sun-label {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper);
+  white-space: nowrap;
+  opacity: 0;
+  animation: label-fade 2s ease-out 1s forwards;
+  pointer-events: none;
+}
+
+/* ── PLANET (orbiting) ── */
+.planet-track {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  animation: orbit-spin 40s linear infinite;
+}
+
+.planet {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #888;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(136,136,136,0.5);
+  cursor: help;
+  transition: transform 0.3s;
+}
+
+.planet:hover {
+  transform: translateX(-50%) scale(1.4);
+}
+
+.planet-label {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.45rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #888;
+  white-space: nowrap;
+  animation: counter-spin 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes counter-spin {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to { transform: translateX(-50%) rotate(-360deg); }
+}
+
+/* ── FLOATING POEM MARKERS ── */
+.poem-marker {
+  position: fixed;
+  padding: 8px 14px;
+  background: rgba(244,241,232,0.08);
+  border: 1px solid rgba(244,241,232,0.2);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  animation: marker-drift 3s ease-out forwards;
+}
+
+.poem-marker:hover {
+  background: rgba(244,241,232,0.15);
+  border-color: rgba(244,241,232,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(244,241,232,0.15);
+}
+
+.poem-marker.read {
+  background: rgba(244,241,232,0.12);
+  border-color: rgba(244,241,232,0.4);
+}
+
+@keyframes marker-drift {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── POEM READER ── */
+.poem-reader {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  max-width: 520px;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  overflow-y: auto;
+  z-index: 100;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.6);
+}
+
+.poem-reader.open {
+  right: 0;
+}
+
+.poem-reader-inner {
+  padding: 64px 48px;
+  max-width: 440px;
+}
+
+.pr-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: none;
+  border: none;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--ink-fade);
+  cursor: pointer;
+  transition: color 0.2s;
+  text-transform: uppercase;
+}
+
+.pr-close:hover {
+  color: var(--ink);
+}
+
+.pr-number {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.pr-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  margin-bottom: 32px;
+  line-height: 1.3;
+}
+
+.pr-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 2;
+  color: var(--ink);
+  white-space: pre-line;
+  font-weight: 300;
+}
+
+.pr-meta {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--ink-fade);
+  text-transform: uppercase;
+}
+
+/* ── HUD ── */
+.hud-top {
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hud-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--paper);
+  opacity: 0;
+  animation: label-fade 2s ease-out 0.5s forwards;
+}
+
+.hud-subtitle {
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  margin-top: 6px;
+  opacity: 0;
+  animation: label-fade 2s ease-out 1.5s forwards;
+}
+
+/* ── DECADE COUNTER ── */
+.decade-counter {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  animation: label-fade 2s ease-out 2.5s forwards;
+}
+
+.dc-years {
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--paper);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dc-label {
+  font-size: 0.5rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+}
+
+/* ── INSTRUCTION ── */
+.instruction {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  opacity: 0;
+  animation: label-fade 2s ease-out 3.5s forwards;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* ── INFO TOOLTIP ── */
+.info-tooltip {
+  position: fixed;
+  bottom: 32px;
+  left: 32px;
+  max-width: 280px;
+  padding: 16px 20px;
+  background: rgba(244,241,232,0.06);
+  border: 1px solid rgba(244,241,232,0.15);
+  font-size: 0.65rem;
+  line-height: 1.7;
+  color: var(--paper);
+  opacity: 0;
+  animation: label-fade 2s ease-out 4s forwards;
+  z-index: 20;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+/* Scrollbar for poem reader */
+.poem-reader::-webkit-scrollbar {
+  width: 6px;
+}
+.poem-reader::-webkit-scrollbar-track {
+  background: #e8e5d8;
+}
+.poem-reader::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="grid"></div>
+
+<div class="scene">
+  <!-- orbit rings generated by JS -->
+  <div class="orbit-container" id="orbitContainer"></div>
+
+  <!-- planet -->
+  <div class="planet-track">
+    <div class="planet" title="him — in orbit for a decade">
+      <div class="planet-label">him</div>
+    </div>
+  </div>
+
+  <!-- sun -->
+  <div class="sun">
+    <div class="sun-label">you</div>
+  </div>
+</div>
+
+<!-- floating poem markers generated by JS -->
+<div id="poemMarkers"></div>
+
+<!-- HUD -->
+<div class="hud-top">
+  <div class="hud-title">Ten Years of Orbit</div>
+  <div class="hud-subtitle">A decade of returns · 2016–2026</div>
+</div>
+
+<div class="decade-counter">
+  <div class="dc-years">10</div>
+  <div class="dc-label">Years</div>
+</div>
+
+<div class="instruction">Click poems to read</div>
+
+<div class="info-tooltip">
+  Each ring represents one year of the orbit. Poems drift in space, marking moments across the decade. He kept returning — but never landing.
+</div>
+
+<!-- poem reader panel -->
+<div class="poem-reader" id="poemReader">
+  <button class="pr-close" id="prClose">[ Close ]</button>
+  <div class="poem-reader-inner">
+    <div class="pr-number" id="prNumber"></div>
+    <div class="pr-title" id="prTitle"></div>
+    <div class="pr-text" id="prText"></div>
+    <div class="pr-meta" id="prMeta"></div>
+  </div>
+</div>
+
+<script>
+// ── POEMS ──
+const centralPoem = {
+  num: "∞",
+  title: "Unsettled Mornings",
+  year: "The Center",
+  text: `What do I do with these unsettled mornings?
+woken by lucid dreams of you on the beach,
+in a dusty, sandy beige suit,
+under a vivid summer sky.
+
+The colours too saturated.
+The lines on your face, too blurred.
+Surely this is another time,
+another dimension
+where we are finally fine.
+
+You smile knowingly—
+as if you always knew.
+Maybe you dreamt of that home too,
+the one echoing with our laughter.
+One fork, one slice of orange cake.
+You knew peace.
+You knew you would be loved.
+
+But look what you did?
+
+Like the moon, you wax and wane—
+in vain.
+You disown that little boy's pain.
+
+And I am left alone
+Holding his childhood and shame
+His softness you refused to see.
+
+Tears flood my lucid dreams.
+
+This morning, all I have are memories
+of your fingers—
+and my hands,
+that will never collapse into those spaces
+that felt like they were made for me.`
+};
+
+const poems = [
+  {
+    num: "I",
+    title: "3650 Days",
+    year: 2016,
+    text: `Hide your cards. I will hide mine.
+Until we run out of decks.
+Run out of audiences.
+Finally run out of our own minds.
+
+3650 days of holding our secrets.
+3650 days of "almosts."
+3650 days quietly erased.
+
++1 more grey day — do we end in Narnia?
++2 more — Mad Maxed into dystopia.
+−3650 days to the start.
+
+No more resets. February 2016.
+
+Let's detonate Schrödinger's heart.`
+  },
+  {
+    num: "II",
+    title: "Let's Pretend",
+    year: 2017,
+    text: `Let's pretend
+that I didn't rage
+I didn't self harm
+by starving myself for days
+I didn't spend nights awake
+hating myself
+dehydrating myself
+till there were no tears left
+
+Till the pain in my head
+and my eyes
+became one with the
+existential sorrow in my soul
+
+And you will say —
+you never asked me to.
+It's a choice I made.
+
+Unpaid emotional labour.
+A choice I made —
+to defend you in rooms
+you aren't in
+when you can't even find the integrity
+to defend me in the spaces of your mind.
+
+Instead of saying
+"I'm sorry I broke something sacred."
+
+Fucking choices you make.`
+  },
+  {
+    num: "III",
+    title: "The Ice Tray",
+    year: 2017,
+    text: `I feel too much
+I wish I could fit in the ice tray
+I feel so much
+I wish I could unsee your grey
+I want so much
+To sow these frays
+I know so much
+I no longer pray`
+  },
+  {
+    num: "IV",
+    title: "Choose Your Own Adventure",
+    year: 2018,
+    text: `I share something sacred
+that is humiliatingly discarded
+Resented but deeply wanted
+
+Like a choose your own adventure
+Sometimes the hero
+Sometimes the villain
+
+I wish my existence
+didn't set off these spirals
+I wish I could insert the period
+and end these dysphoric cycles
+
+I stand like a fortress.
+And everyone's building prisons
+around themselves.`
+  },
+  {
+    num: "V",
+    title: "The Pedestal",
+    year: 2019,
+    text: `You make avoidant look noble
+I make compassion look feral
+
+Between the mutual reverence
+our unrealistic story
+remains just that —
+unbelievable
+
+You don't believe
+your own intention
+
+Why am I forced to sit
+on this holy pedestal?
+
+I feel unreal.
+I've become your invocation —
+a limited edition pop doll,
+kept pristine and impeccable.
+
+But never held.
+Because that's just
+so real.`
+  },
+  {
+    num: "VI",
+    title: "The Boy Room",
+    year: 2020,
+    text: `You need me to believe
+you are the final boss of fuckboys.
+
+But —
+
+Your boy panic runs into the room
+and dumps a basket
+of dysfunctional fam — circa 90s toys.
+Covered in dust bunnies of daddy no show.
+Complete with collectors items
+from the classic brand —
+mother wound.
+
+No amount of my OCD'ing
+could ever Marie Kondo
+your messy boy room.`
+  },
+  {
+    num: "VII",
+    title: "The Dad Crown",
+    year: 2021,
+    text: `It's not so serious
+I scream every night
+Inaudible, the rage flows
+Further silencing the quiet.
+
+While other women play the mother
+you assigned me the dad crown —
+Stoic. Unperturbed. Avoidant.
+
+My softness drowns.`
+  },
+  {
+    num: "VIII",
+    title: "Constellations",
+    year: 2022,
+    text: `There are constellations inside your chaos
+Endless galaxies in your stares
+Coldness that was etched in your skin
+The tightened jaw aging you before your time
+
+And behind that loud boisterous laugh
+all I felt was the longing of a boy
+
+But your notebook isn't mine to hold
+or even write
+I cannot fill the pages with my tears
+when I already flooded mine —
+Endless wounds on my spine
+Coldness etched into my mind
+The tightened breath aging my heart
+before its time
+
+And behind the curtains
+of loud performative stages —
+
+I refuse to carry our notebooks
+full of empty pages.`
+  },
+  {
+    num: "IX",
+    title: "The Obituary",
+    year: 2023,
+    text: `Sometimes I am the happy vibrance
+of a ladybug
+
+Other times I am a hissing can
+of toxic Raid
+
+And other-other times
+I'm the worst of it all —
+
+We never had mutual friends.
+
+Who the fuck's gonna DM me
+your obituary
+when you are dead?`
+  },
+  {
+    num: "X",
+    title: "Full Moon Storm",
+    year: 2024,
+    text: `Self rejection so loud
+it spills onto me
+
+Full moon storm warning —
+once it's done flooding you
+it comes to drown me.`
+  },
+  {
+    num: "XI",
+    title: "The Three H Agreement",
+    year: 2025,
+    text: `The three H agreement —
+I honour
+I never signed up for it
+but here we are my friend.
+
+The cycle must end:
+Humour. Humiliate. Haunt.
+
+You wrote that order.
+Exactly in that order.
+
+But unlike you
+I won't have to lift a finger.
+Just stare
+at the drawer in your psyche
+where you store my impact.
+
+Accidental horror.`
+  },
+  {
+    num: "XII",
+    title: "I Will Steal the Moon",
+    year: 2026,
+    text: `I am that unyielding rock
+you have tried to erode
+with the way you keep crashing
+and retreating
+like waves —
+sometimes stormy
+sometimes soft
+
+But I still stay
+an unyielding rock.
+
+Someday I am going to revolt.
+In my rebellion
+I will steal the moon.
+
+Who you gonna perform for?
+Let's see how you like that then.
+
+I will bottle your genie
+and fling that clown
+along with the moon.`
+  }
+];
+
+// ── ORBIT RINGS (10 years: 2016-2026) ──
+const orbitContainer = document.getElementById('orbitContainer');
+const startYear = 2016;
+const ringCount = 10;
+const baseSize = 180;
+const ringGap = 40;
+
+for (let i = 0; i < ringCount; i++) {
+  const year = startYear + i;
+  const size = baseSize + (i * ringGap);
+  const isRecent = i >= 7;
+  
+  const ring = document.createElement('div');
+  ring.className = 'orbit-ring';
+  ring.style.width = `${size}px`;
+  ring.style.height = `${size}px`;
+  ring.style.borderColor = isRecent ? 'var(--orbit-new)' : 'var(--orbit-old)';
+  ring.style.animationDelay = `${i * 0.15}s`;
+  
+  const label = document.createElement('div');
+  label.className = 'year-label';
+  label.textContent = year;
+  label.style.top = `${-size/2 - 18}px`;
+  label.style.left = '50%';
+  label.style.transform = 'translateX(-50%)';
+  label.style.animationDelay = `${i * 0.15 + 0.5}s`;
+  
+  ring.appendChild(label);
+  orbitContainer.appendChild(ring);
+}
+
+// ── FLOATING POEM MARKERS ──
+const markersContainer = document.getElementById('poemMarkers');
+const readPoems = new Set();
+
+// Physics vars for floating
+const markers = [];
+const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+poems.forEach((poem, idx) => {
+  const marker = document.createElement('div');
+  marker.className = 'poem-marker';
+  marker.textContent = `${poem.num}. ${poem.title}`;
+  marker.style.animationDelay = `${idx * 0.2}s`;
+  
+  // Random initial position (avoid center)
+  const angle = (idx / poems.length) * Math.PI * 2;
+  const radius = 200 + Math.random() * 200;
+  const x = window.innerWidth / 2 + Math.cos(angle) * radius;
+  const y = window.innerHeight / 2 + Math.sin(angle) * radius;
+  
+  marker.style.left = `${x}px`;
+  marker.style.top = `${y}px`;
+  
+  marker.addEventListener('click', () => openPoem(poem, idx));
+  markersContainer.appendChild(marker);
+  
+  markers.push({
+    el: marker,
+    x: x,
+    y: y,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    idx: idx
+  });
+});
+
+// ── FLOATING PHYSICS ──
+let mouseInfluence = false;
+
+document.addEventListener('mousemove', (e) => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  mouseInfluence = true;
+});
+
+function animate() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const centerX = W / 2;
+  const centerY = H / 2;
+  
+  markers.forEach((m) => {
+    // Gentle drift
+    m.vx += (Math.random() - 0.5) * 0.05;
+    m.vy += (Math.random() - 0.5) * 0.05;
+    
+    // Avoid center (repel from sun)
+    const dx = m.x - centerX;
+    const dy = m.y - centerY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 150) {
+      m.vx += (dx / dist) * 0.8;
+      m.vy += (dy / dist) * 0.8;
+    }
+    
+    // Mouse repel (anti-gravity feel)
+    if (mouseInfluence) {
+      const mdx = m.x - mouse.x;
+      const mdy = m.y - mouse.y;
+      const mdist = Math.sqrt(mdx*mdx + mdy*mdy);
+      if (mdist < 180) {
+        const force = (180 - mdist) / 180;
+        m.vx += (mdx / mdist) * force * 1.5;
+        m.vy += (mdy / mdist) * force * 1.5;
+      }
+    }
+    
+    // Damping
+    m.vx *= 0.95;
+    m.vy *= 0.95;
+    
+    // Update position
+    m.x += m.vx;
+    m.y += m.vy;
+    
+    // Bounce off edges
+    if (m.x < 80) { m.x = 80; m.vx *= -0.5; }
+    if (m.x > W - 80) { m.x = W - 80; m.vx *= -0.5; }
+    if (m.y < 80) { m.y = 80; m.vy *= -0.5; }
+    if (m.y > H - 80) { m.y = H - 80; m.vy *= -0.5; }
+    
+    m.el.style.transform = `translate(${m.x - m.el.offsetWidth/2}px, ${m.y - m.el.offsetHeight/2}px)`;
+  });
+  
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+// ── POEM READER ──
+const reader = document.getElementById('poemReader');
+const prNumber = document.getElementById('prNumber');
+const prTitle = document.getElementById('prTitle');
+const prText = document.getElementById('prText');
+const prMeta = document.getElementById('prMeta');
+const prClose = document.getElementById('prClose');
+
+function openPoem(poem, idx) {
+  prNumber.textContent = `Poem ${poem.num}`;
+  prTitle.textContent = poem.title;
+  prText.textContent = poem.text;
+  prMeta.textContent = `Written ${poem.year} · Year ${poem.year - 2016 + 1} of orbit`;
+  
+  reader.classList.add('open');
+  readPoems.add(idx);
+  markers[idx].el.classList.add('read');
+}
+
+function closePoem() {
+  reader.classList.remove('open');
+}
+
+prClose.addEventListener('click', closePoem);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closePoem();
+  }
+});
+
+// ── SUN CLICK (opens central poem) ──
+const sun = document.querySelector('.sun');
+sun.addEventListener('click', () => {
+  prNumber.textContent = `Poem ${centralPoem.num}`;
+  prTitle.textContent = centralPoem.title;
+  prText.textContent = centralPoem.text;
+  prMeta.textContent = `From the center — The constant`;
+  reader.classList.add('open');
+});
+
+// Reset mouse influence after a period of no movement
+let mouseTimer;
+document.addEventListener('mousemove', () => {
+  clearTimeout(mouseTimer);
+  mouseInfluence = true;
+  mouseTimer = setTimeout(() => { mouseInfluence = false; }, 3000);
+});
+
+</script>
+</body>
+</html>
