@@ -16,34 +16,20 @@
   --ink-fade: #666;
   --accent: #8a7a6a;
   --line: #d4d0c4;
-  --orbit-old: rgba(212, 208, 196, 0.15);
-  --orbit-new: rgba(212, 208, 196, 0.4);
 }
 
 html, body {
-  width: 100%; 
+  width: 100%;
   height: 100%;
   background: var(--void);
   font-family: 'Courier Prime', monospace;
   color: var(--paper);
-  cursor: default;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-  body {
-    min-height: 100vh;
-    height: auto;
-  }
-}
-
-/* ── GRID OVERLAY ── */
+/* ── GRID ── */
 .grid {
   position: fixed;
   inset: 0;
@@ -61,512 +47,364 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
-}
-
-.scene > * {
-  pointer-events: auto;
-}
-
-@media (max-width: 768px) {
-  .scene {
-    position: absolute;
-    top: 200px;
-    left: 50%;
-    transform: translateX(-50%) scale(0.5);
-    height: 600px;
-    width: 600px;
-  }
-}
-
-@media (max-width: 480px) {
-  .scene {
-    top: 150px;
-    transform: translateX(-50%) scale(0.4);
-    height: 500px;
-    width: 500px;
-  }
 }
 
 /* ── ORBIT RINGS ── */
-/* Each ring = one year, 10 rings total */
-.orbit-container {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .orbit-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid;
-  opacity: 0;
-  animation: ring-fade-in 2s ease-out forwards;
-}
-
-/* Year labels on rings */
-.year-label {
-  position: absolute;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
-  color: var(--ink-fade);
-  opacity: 0;
-  animation: label-fade 2s ease-out forwards;
-  white-space: nowrap;
+  border: 1px solid rgba(212, 208, 196, 0.18);
   pointer-events: none;
+  opacity: 0;
+  animation: ring-fade-in 1.8s ease-out forwards;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-@keyframes ring-fade-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+.orbit-ring.recent {
+  border-color: rgba(212, 208, 196, 0.32);
 }
 
-@keyframes label-fade {
-  from { opacity: 0; }
-  to { opacity: 0.4; }
+.orbit-ring:has(.orbit-node:hover) {
+  border-color: rgba(212, 208, 196, 0.7);
+  box-shadow: 0 0 22px rgba(212, 208, 196, 0.12);
 }
 
-/* ── SUN (center point) ── */
+/* ── ORBIT NODE ── */
+.orbit-node {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.orbit-node-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(212, 208, 196, 0.4);
+  flex-shrink: 0;
+  transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.orbit-node:hover .orbit-node-dot,
+.orbit-node:active .orbit-node-dot {
+  background: rgba(212, 208, 196, 0.95);
+  transform: scale(1.7);
+  box-shadow: 0 0 12px rgba(212, 208, 196, 0.55);
+}
+
+.orbit-node-num {
+  font-size: 0.4rem;
+  letter-spacing: 0.15em;
+  color: rgba(244, 241, 232, 0.3);
+  text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+@media (max-width: 768px) {
+  .orbit-node {
+    width: 56px;
+    height: 56px;
+  }
+  .orbit-node-dot {
+    width: 9px;
+    height: 9px;
+  }
+  .orbit-node-num {
+    font-size: 0.55rem;
+    color: rgba(244, 241, 232, 0.5);
+  }
+}
+
+.orbit-node:hover .orbit-node-num,
+.orbit-node:active .orbit-node-num {
+  color: rgba(244, 241, 232, 0.85);
+}
+
+/* ── SUN ── */
 .sun {
-  position: relative;
-  width: 16px;
-  height: 16px;
+  position: absolute;
+  width: clamp(12px, 1.6vmin, 20px);
+  height: clamp(12px, 1.6vmin, 20px);
   background: var(--paper);
   border-radius: 50%;
-  box-shadow: 0 0 20px rgba(244,241,232,0.6);
+  box-shadow: 0 0 24px rgba(244, 241, 232, 0.6);
   z-index: 10;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .sun:hover {
-  transform: scale(1.3);
-  box-shadow: 0 0 30px rgba(244,241,232,0.8);
+  transform: scale(1.45);
+  box-shadow: 0 0 38px rgba(244, 241, 232, 0.9);
 }
 
 .sun-label {
   position: absolute;
-  top: -28px;
+  top: -20px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.5rem;
+  font-size: 0.4rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--paper);
+  color: rgba(244, 241, 232, 0.5);
   white-space: nowrap;
-  opacity: 0;
-  animation: label-fade 2s ease-out 1s forwards;
   pointer-events: none;
+  opacity: 0;
+  animation: fade-in 2s ease-out 1s forwards;
 }
 
-/* ── PLANET (orbiting) ── */
+/* ── PLANET ── */
 .planet-track {
   position: absolute;
-  width: 520px;
-  height: 520px;
   animation: orbit-spin 40s linear infinite;
+  pointer-events: none;
 }
 
 .planet {
   position: absolute;
-  top: -8px;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
+  transform: translate(-50%, -50%);
+  width: clamp(8px, 1.1vmin, 14px);
+  height: clamp(8px, 1.1vmin, 14px);
   background: #888;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(136,136,136,0.5);
-  cursor: help;
-  transition: transform 0.3s;
-}
-
-.planet:hover {
-  transform: translateX(-50%) scale(1.4);
+  box-shadow: 0 0 12px rgba(136, 136, 136, 0.5);
 }
 
 .planet-label {
   position: absolute;
-  top: -24px;
+  top: -15px;
   left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.45rem;
+  font-size: 0.38rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #888;
   white-space: nowrap;
+  transform: translateX(-50%);
   animation: counter-spin 40s linear infinite;
   pointer-events: none;
 }
 
 @keyframes orbit-spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @keyframes counter-spin {
   from { transform: translateX(-50%) rotate(0deg); }
-  to { transform: translateX(-50%) rotate(-360deg); }
+  to   { transform: translateX(-50%) rotate(-360deg); }
 }
 
-/* ── FLOATING POEM MARKERS ── */
-.poem-marker {
+@keyframes ring-fade-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── HUD ── */
+.hud-top {
   position: fixed;
-  padding: 8px 14px;
-  background: rgba(244,241,232,0.08);
-  border: 1px solid rgba(244,241,232,0.2);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  color: var(--paper);
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.25s ease;
-  backdrop-filter: blur(4px);
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 20;
+  pointer-events: none;
   opacity: 0;
-  animation: marker-drift 3s ease-out forwards;
-  -webkit-tap-highlight-color: transparent;
+  animation: fade-in 2s ease-out 0.5s forwards;
 }
 
-.poem-marker:hover,
-.poem-marker:active {
-  background: rgba(244,241,232,0.15);
-  border-color: rgba(244,241,232,0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(244,241,232,0.15);
+.hud-title {
+  font-size: clamp(0.55rem, 1.8vw, 0.75rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 768px) {
-  .poem-marker {
-    position: relative !important;
-    transform: none !important;
-    left: auto !important;
-    top: auto !important;
-    display: block;
-    width: calc(100% - 40px);
-    margin: 0 auto 12px;
-    text-align: center;
-    font-size: 0.65rem;
-    padding: 12px 16px;
-  }
-  
-  .poem-marker:hover,
-  .poem-marker:active {
-    transform: none !important;
-  }
+.hud-subtitle {
+  font-size: clamp(0.42rem, 1.2vw, 0.55rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  margin-top: 6px;
 }
 
-.poem-marker.read {
-  background: rgba(244,241,232,0.12);
-  border-color: rgba(244,241,232,0.4);
-}
-
-@keyframes marker-drift {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ── POEM READER ── */
-.poem-reader {
+/* ── INSTRUCTION ── */
+.instruction {
   position: fixed;
-  top: 0;
-  right: -100%;
-  width: 100%;
-  max-width: 520px;
-  height: 100%;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(0.38rem, 1.1vw, 0.48rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  opacity: 0;
+  animation: fade-in 2s ease-out 3s forwards;
+  z-index: 20;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── OVERLAY ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.overlay-card {
   background: var(--paper);
   color: var(--ink);
+  max-width: 560px;
+  width: 100%;
+  max-height: 88vh;
   overflow-y: auto;
-  z-index: 100;
-  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: -8px 0 32px rgba(0,0,0,0.6);
+  padding: 52px 48px 60px;
+  position: relative;
+  transform: translateY(18px) scale(0.98);
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (max-width: 768px) {
-  .poem-reader {
+.overlay.open .overlay-card {
+  transform: translateY(0) scale(1);
+}
+
+/* Bottom sheet on mobile */
+@media (max-width: 600px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .overlay-card {
+    max-height: 90vh;
     max-width: 100%;
-    box-shadow: none;
+    padding: 40px 28px 52px;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .overlay.open .overlay-card {
+    transform: translateY(0);
   }
 }
 
-.poem-reader.open {
-  right: 0;
-}
-
-.poem-reader-inner {
-  padding: 64px 48px;
-  max-width: 440px;
-}
-
-@media (max-width: 768px) {
-  .poem-reader-inner {
-    padding: 48px 24px;
-    max-width: 100%;
-  }
-}
-
-.pr-close {
+.overlay-close {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 18px;
+  right: 20px;
   background: none;
   border: none;
   font-family: 'Courier Prime', monospace;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   letter-spacing: 0.15em;
   color: var(--ink-fade);
   cursor: pointer;
   transition: color 0.2s;
   text-transform: uppercase;
+  padding: 8px;
 }
 
-.pr-close:hover {
-  color: var(--ink);
-}
+.overlay-close:hover { color: var(--ink); }
 
-.pr-number {
-  font-size: 0.65rem;
+.overlay-num {
+  font-size: 0.58rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.pr-title {
+.overlay-title {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.6rem;
+  font-size: clamp(1.4rem, 5vw, 1.85rem);
   font-weight: 400;
   font-style: italic;
   color: var(--ink);
-  margin-bottom: 32px;
+  margin-bottom: 36px;
   line-height: 1.3;
 }
 
-.pr-text {
+.overlay-text {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 2.8vw, 1.05rem);
   line-height: 2;
   color: var(--ink);
   white-space: pre-line;
   font-weight: 300;
 }
 
-.pr-meta {
+.overlay-meta {
   margin-top: 48px;
-  padding-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid var(--line);
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   letter-spacing: 0.15em;
   color: var(--ink-fade);
   text-transform: uppercase;
 }
 
-/* ── HUD ── */
-.hud-top {
-  position: fixed;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  z-index: 20;
-  pointer-events: none;
-}
-
-.hud-title {
-  font-size: 0.75rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--paper);
-  opacity: 0;
-  animation: label-fade 2s ease-out 0.5s forwards;
-}
-
-.hud-subtitle {
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-fade);
-  margin-top: 6px;
-  opacity: 0;
-  animation: label-fade 2s ease-out 1.5s forwards;
-}
-
-/* ── DECADE COUNTER ── */
-.decade-counter {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  z-index: 20;
-  pointer-events: none;
-  opacity: 0;
-  animation: label-fade 2s ease-out 2.5s forwards;
-}
-
-.dc-years {
-  font-size: 2.8rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--paper);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.dc-label {
-  font-size: 0.5rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--ink-fade);
-}
-
-/* ── INSTRUCTION ── */
-.instruction {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-fade);
-  opacity: 0;
-  animation: label-fade 2s ease-out 3.5s forwards;
-  z-index: 20;
-  pointer-events: none;
-}
-
-/* ── INFO TOOLTIP ── */
-.info-tooltip {
-  position: fixed;
-  bottom: 32px;
-  left: 32px;
-  max-width: 280px;
-  padding: 16px 20px;
-  background: rgba(244,241,232,0.06);
-  border: 1px solid rgba(244,241,232,0.15);
-  font-size: 0.65rem;
-  line-height: 1.7;
-  color: var(--paper);
-  opacity: 0;
-  animation: label-fade 2s ease-out 4s forwards;
-  z-index: 20;
-  pointer-events: none;
-  backdrop-filter: blur(6px);
-}
-
-@media (max-width: 768px) {
-  .info-tooltip {
-    display: none;
-  }
-  
-  .instruction {
-    bottom: 16px;
-    right: 16px;
-    font-size: 0.45rem;
-  }
-  
-  .decade-counter {
-    bottom: 16px;
-    left: 16px;
-  }
-  
-  .dc-years {
-    font-size: 2rem;
-  }
-}
-
-/* Scrollbar for poem reader */
-.poem-reader::-webkit-scrollbar {
-  width: 6px;
-}
-.poem-reader::-webkit-scrollbar-track {
-  background: #e8e5d8;
-}
-.poem-reader::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 3px;
-}
-
-/* ── POEM MARKERS CONTAINER ── */
-#poemMarkers {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 15;
-}
-
-@media (max-width: 768px) {
-  #poemMarkers {
-    position: relative;
-    margin-top: 700px;
-    padding: 20px;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-}
-
+/* Scrollbar */
+.overlay-card::-webkit-scrollbar { width: 4px; }
+.overlay-card::-webkit-scrollbar-track { background: #e8e5d8; }
+.overlay-card::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 </style>
 </head>
 <body>
 
 <div class="grid"></div>
+<div class="scene" id="scene"></div>
 
-<div class="scene">
-  <!-- orbit rings generated by JS -->
-  <div class="orbit-container" id="orbitContainer"></div>
-
-  <!-- planet -->
-  <div class="planet-track">
-    <div class="planet" title="him — in orbit for a decade">
-      <div class="planet-label">him</div>
-    </div>
-  </div>
-
-  <!-- sun -->
-  <div class="sun">
-    <div class="sun-label">you</div>
-  </div>
-</div>
-
-<!-- floating poem markers generated by JS -->
-<div id="poemMarkers"></div>
-
-<!-- HUD -->
 <div class="hud-top">
   <div class="hud-title">Ten Years of Orbit</div>
   <div class="hud-subtitle">A decade of returns · 2016–2026</div>
 </div>
 
-<div class="decade-counter">
-  <div class="dc-years">10</div>
-  <div class="dc-label">Years</div>
-</div>
+<div class="instruction">tap an orbit to read · click the sun</div>
 
-<div class="instruction">Click poems to read</div>
-
-<div class="info-tooltip">
-  Each ring represents one year of the orbit. Poems drift in space, marking moments across the decade. He kept returning — but never landing.
-</div>
-
-<!-- poem reader panel -->
-<div class="poem-reader" id="poemReader">
-  <button class="pr-close" id="prClose">[ Close ]</button>
-  <div class="poem-reader-inner">
-    <div class="pr-number" id="prNumber"></div>
-    <div class="pr-title" id="prTitle"></div>
-    <div class="pr-text" id="prText"></div>
-    <div class="pr-meta" id="prMeta"></div>
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <button class="overlay-close" id="overlayClose">[ close ]</button>
+    <div class="overlay-num"   id="overlayNum"></div>
+    <div class="overlay-title" id="overlayTitle"></div>
+    <div class="overlay-text"  id="overlayText"></div>
+    <div class="overlay-meta"  id="overlayMeta"></div>
   </div>
 </div>
 
 <script>
-// ── POEMS ──
+// ── POEMS ──────────────────────────────────────────────────────────────
+
 const centralPoem = {
-  num: "∞",
-  title: "Unsettled Mornings",
-  year: "The Center",
+  num: '∞',
+  title: 'Unsettled Mornings',
+  year: 'center',
   text: `What do I do with these unsettled mornings?
 woken by lucid dreams of you on the beach,
 in a dusty, sandy beige suit,
@@ -607,9 +445,7 @@ that felt like they were made for me.`
 
 const poems = [
   {
-    num: "I",
-    title: "3650 Days",
-    year: 2016,
+    num: 'I', title: '3650 Days', year: 2016,
     text: `Hide your cards. I will hide mine.
 Until we run out of decks.
 Run out of audiences.
@@ -628,9 +464,7 @@ No more resets. February 2016.
 Let's detonate Schrödinger's heart.`
   },
   {
-    num: "II",
-    title: "Let's Pretend",
-    year: 2017,
+    num: 'II', title: "Let's Pretend", year: 2017,
     text: `Let's pretend
 that I didn't rage
 I didn't self harm
@@ -662,9 +496,7 @@ Instead of saying
 Fucking choices you make.`
   },
   {
-    num: "III",
-    title: "The Ice Tray",
-    year: 2017,
+    num: 'III', title: 'The Ice Tray', year: 2017,
     text: `I feel too much
 I wish I could fit in the ice tray
 I feel so much
@@ -675,9 +507,7 @@ I know so much
 I no longer pray`
   },
   {
-    num: "IV",
-    title: "Choose Your Own Adventure",
-    year: 2018,
+    num: 'IV', title: 'Choose Your Own Adventure', year: 2018,
     text: `I share something sacred
 that is humiliatingly discarded
 Resented but deeply wanted
@@ -696,9 +526,7 @@ And everyone's building prisons
 around themselves.`
   },
   {
-    num: "V",
-    title: "The Pedestal",
-    year: 2019,
+    num: 'V', title: 'The Pedestal', year: 2019,
     text: `You make avoidant look noble
 I make compassion look feral
 
@@ -723,9 +551,7 @@ Because that's just
 so real.`
   },
   {
-    num: "VI",
-    title: "The Boy Room",
-    year: 2020,
+    num: 'VI', title: 'The Boy Room', year: 2020,
     text: `You need me to believe
 you are the final boss of fuckboys.
 
@@ -744,9 +570,7 @@ could ever Marie Kondo
 your messy boy room.`
   },
   {
-    num: "VII",
-    title: "The Dad Crown",
-    year: 2021,
+    num: 'VII', title: 'The Dad Crown', year: 2021,
     text: `It's not so serious
 I scream every night
 Inaudible, the rage flows
@@ -759,9 +583,7 @@ Stoic. Unperturbed. Avoidant.
 My softness drowns.`
   },
   {
-    num: "VIII",
-    title: "Constellations",
-    year: 2022,
+    num: 'VIII', title: 'Constellations', year: 2022,
     text: `There are constellations inside your chaos
 Endless galaxies in your stares
 Coldness that was etched in your skin
@@ -786,9 +608,7 @@ I refuse to carry our notebooks
 full of empty pages.`
   },
   {
-    num: "IX",
-    title: "The Obituary",
-    year: 2023,
+    num: 'IX', title: 'The Obituary', year: 2023,
     text: `Sometimes I am the happy vibrance
 of a ladybug
 
@@ -805,252 +625,95 @@ your obituary
 when you are dead?`
   },
   {
-    num: "X",
-    title: "Full Moon Storm",
-    year: 2024,
+    num: 'X', title: 'Full Moon Storm', year: 2024,
     text: `Self rejection so loud
 it spills onto me
 
 Full moon storm warning —
 once it's done flooding you
 it comes to drown me.`
-  },
-  {
-    num: "XI",
-    title: "The Three H Agreement",
-    year: 2025,
-    text: `The three H agreement —
-I honour
-I never signed up for it
-but here we are my friend.
-
-The cycle must end:
-Humour. Humiliate. Haunt.
-
-You wrote that order.
-Exactly in that order.
-
-But unlike you
-I won't have to lift a finger.
-Just stare
-at the drawer in your psyche
-where you store my impact.
-
-Accidental horror.`
-  },
-  {
-    num: "XII",
-    title: "I Will Steal the Moon",
-    year: 2026,
-    text: `I am that unyielding rock
-you have tried to erode
-with the way you keep crashing
-and retreating
-like waves —
-sometimes stormy
-sometimes soft
-
-But I still stay
-an unyielding rock.
-
-Someday I am going to revolt.
-In my rebellion
-I will steal the moon.
-
-Who you gonna perform for?
-Let's see how you like that then.
-
-I will bottle your genie
-and fling that clown
-along with the moon.`
   }
 ];
 
-// ── ORBIT RINGS (10 years: 2016-2026) ──
-const orbitContainer = document.getElementById('orbitContainer');
-const startYear = 2016;
-const ringCount = 10;
-const baseSize = 180;
-const ringGap = 40;
+// ── BUILD SCENE ────────────────────────────────────────────────────────
 
-for (let i = 0; i < ringCount; i++) {
-  const year = startYear + i;
-  const size = baseSize + (i * ringGap);
-  const isRecent = i >= 7;
-  
+const scene = document.getElementById('scene');
+
+// Ring sizing in vmin — auto-responsive, no JS resize needed
+const BASE_VMIN = 16;  // innermost ring diameter
+const GAP_VMIN  = 5;   // gap between rings
+const N         = 10;  // ring count
+
+// Sun
+const sun = document.createElement('div');
+sun.className = 'sun';
+sun.innerHTML = '<div class="sun-label">you</div>';
+sun.addEventListener('click', () => openPoem(centralPoem));
+scene.appendChild(sun);
+
+// Rings + nodes
+poems.forEach((poem, i) => {
+  const sizevmin = BASE_VMIN + i * GAP_VMIN;
+
   const ring = document.createElement('div');
-  ring.className = 'orbit-ring';
-  ring.style.width = `${size}px`;
-  ring.style.height = `${size}px`;
-  ring.style.borderColor = isRecent ? 'var(--orbit-new)' : 'var(--orbit-old)';
-  ring.style.animationDelay = `${i * 0.15}s`;
-  
-  const label = document.createElement('div');
-  label.className = 'year-label';
-  label.textContent = year;
-  label.style.top = `${-size/2 - 18}px`;
-  label.style.left = '50%';
-  label.style.transform = 'translateX(-50%)';
-  label.style.animationDelay = `${i * 0.15 + 0.5}s`;
-  
-  ring.appendChild(label);
-  orbitContainer.appendChild(ring);
-}
+  ring.className = 'orbit-ring' + (i >= 7 ? ' recent' : '');
+  ring.style.width  = `${sizevmin}vmin`;
+  ring.style.height = `${sizevmin}vmin`;
+  ring.style.animationDelay = `${i * 0.12}s`;
 
-// ── FLOATING POEM MARKERS ──
-const markersContainer = document.getElementById('poemMarkers');
-const readPoems = new Set();
+  // Distribute nodes evenly around the clock face (36° apart)
+  const angle = (i / N) * Math.PI * 2;
+  const pctX  = 50 + 50 * Math.sin(angle);
+  const pctY  = 50 - 50 * Math.cos(angle);
 
-// Physics vars for floating
-const markers = [];
-const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-const isMobile = window.innerWidth <= 768;
+  const node = document.createElement('div');
+  node.className = 'orbit-node';
+  node.style.left = `${pctX}%`;
+  node.style.top  = `${pctY}%`;
+  node.innerHTML  = `<div class="orbit-node-dot"></div><div class="orbit-node-num">${poem.num}</div>`;
+  node.addEventListener('click', () => openPoem(poem));
 
-poems.forEach((poem, idx) => {
-  const marker = document.createElement('div');
-  marker.className = 'poem-marker';
-  marker.textContent = `${poem.num}. ${poem.title}`;
-  marker.style.animationDelay = `${idx * 0.2}s`;
-  
-  // Only set random positions on desktop
-  if (!isMobile) {
-    const angle = (idx / poems.length) * Math.PI * 2;
-    const radius = 200 + Math.random() * 200;
-    const x = window.innerWidth / 2 + Math.cos(angle) * radius;
-    const y = window.innerHeight / 2 + Math.sin(angle) * radius;
-    
-    marker.style.left = `${x}px`;
-    marker.style.top = `${y}px`;
-    
-    markers.push({
-      el: marker,
-      x: x,
-      y: y,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      idx: idx
-    });
-  }
-  
-  marker.addEventListener('click', () => openPoem(poem, idx));
-  markersContainer.appendChild(marker);
+  ring.appendChild(node);
+  scene.appendChild(ring);
 });
 
-// ── FLOATING PHYSICS ──
-let mouseInfluence = false;
+// Planet track — sits on the outermost ring
+const outerVmin = BASE_VMIN + (N - 1) * GAP_VMIN;
+const track = document.createElement('div');
+track.className = 'planet-track';
+track.style.width  = `${outerVmin}vmin`;
+track.style.height = `${outerVmin}vmin`;
+track.innerHTML = `<div class="planet"><div class="planet-label">him</div></div>`;
+scene.appendChild(track);
 
-document.addEventListener('mousemove', (e) => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  mouseInfluence = true;
-});
+// ── OVERLAY ────────────────────────────────────────────────────────────
 
-function animate() {
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-  const centerX = W / 2;
-  const centerY = H / 2;
-  
-  markers.forEach((m) => {
-    // Gentle drift
-    m.vx += (Math.random() - 0.5) * 0.05;
-    m.vy += (Math.random() - 0.5) * 0.05;
-    
-    // Avoid center (repel from sun)
-    const dx = m.x - centerX;
-    const dy = m.y - centerY;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < 150) {
-      m.vx += (dx / dist) * 0.8;
-      m.vy += (dy / dist) * 0.8;
-    }
-    
-    // Mouse repel (anti-gravity feel)
-    if (mouseInfluence) {
-      const mdx = m.x - mouse.x;
-      const mdy = m.y - mouse.y;
-      const mdist = Math.sqrt(mdx*mdx + mdy*mdy);
-      if (mdist < 180) {
-        const force = (180 - mdist) / 180;
-        m.vx += (mdx / mdist) * force * 1.5;
-        m.vy += (mdy / mdist) * force * 1.5;
-      }
-    }
-    
-    // Damping
-    m.vx *= 0.95;
-    m.vy *= 0.95;
-    
-    // Update position
-    m.x += m.vx;
-    m.y += m.vy;
-    
-    // Bounce off edges
-    if (m.x < 80) { m.x = 80; m.vx *= -0.5; }
-    if (m.x > W - 80) { m.x = W - 80; m.vx *= -0.5; }
-    if (m.y < 80) { m.y = 80; m.vy *= -0.5; }
-    if (m.y > H - 80) { m.y = H - 80; m.vy *= -0.5; }
-    
-    m.el.style.transform = `translate(${m.x - m.el.offsetWidth/2}px, ${m.y - m.el.offsetHeight/2}px)`;
-  });
-  
-  requestAnimationFrame(animate);
-}
+const overlay      = document.getElementById('overlay');
+const overlayClose = document.getElementById('overlayClose');
+const overlayCard  = overlay.querySelector('.overlay-card');
+const overlayNum   = document.getElementById('overlayNum');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText  = document.getElementById('overlayText');
+const overlayMeta  = document.getElementById('overlayMeta');
 
-// Only animate on desktop
-if (!isMobile) {
-  animate();
-}
-
-// ── POEM READER ──
-const reader = document.getElementById('poemReader');
-const prNumber = document.getElementById('prNumber');
-const prTitle = document.getElementById('prTitle');
-const prText = document.getElementById('prText');
-const prMeta = document.getElementById('prMeta');
-const prClose = document.getElementById('prClose');
-
-function openPoem(poem, idx) {
-  prNumber.textContent = `Poem ${poem.num}`;
-  prTitle.textContent = poem.title;
-  prText.textContent = poem.text;
-  prMeta.textContent = `Written ${poem.year} · Year ${poem.year - 2016 + 1} of orbit`;
-  
-  reader.classList.add('open');
-  readPoems.add(idx);
-  markers[idx].el.classList.add('read');
+function openPoem(poem) {
+  overlayNum.textContent   = `Poem ${poem.num}`;
+  overlayTitle.textContent = poem.title;
+  overlayText.textContent  = poem.text;
+  overlayMeta.textContent  = poem.year === 'center'
+    ? 'From the center — The constant'
+    : `${poem.year} · Year ${poem.year - 2016 + 1} of orbit`;
+  overlayCard.scrollTop = 0;
+  overlay.classList.add('open');
 }
 
 function closePoem() {
-  reader.classList.remove('open');
+  overlay.classList.remove('open');
 }
 
-prClose.addEventListener('click', closePoem);
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closePoem();
-  }
-});
-
-// ── SUN CLICK (opens central poem) ──
-const sun = document.querySelector('.sun');
-sun.addEventListener('click', () => {
-  prNumber.textContent = `Poem ${centralPoem.num}`;
-  prTitle.textContent = centralPoem.title;
-  prText.textContent = centralPoem.text;
-  prMeta.textContent = `From the center — The constant`;
-  reader.classList.add('open');
-});
-
-// Reset mouse influence after a period of no movement
-let mouseTimer;
-document.addEventListener('mousemove', () => {
-  clearTimeout(mouseTimer);
-  mouseInfluence = true;
-  mouseTimer = setTimeout(() => { mouseInfluence = false; }, 3000);
-});
-
+overlayClose.addEventListener('click', closePoem);
+overlay.addEventListener('click', e => { if (e.target === overlay) closePoem(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePoem(); });
 </script>
 </body>
 </html>
